@@ -10,7 +10,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
   password2 = serializers.CharField(style={'input_type':'password'}, write_only=True)
   class Meta:
     model = User
-    fields=['email', 'name', 'password', 'password2', 'tc']
+    fields=['email', 'name', 'password', 'password2']
     extra_kwargs={
       'password':{'write_only':True}
     }
@@ -47,8 +47,10 @@ class UserChangePasswordSerializer(serializers.Serializer):
     password = attrs.get('password')
     password2 = attrs.get('password2')
     user = self.context.get('user')
-    if password != password2:
-      raise serializers.ValidationError("Password and Confirm Password doesn't match")
+    # if use :
+    #   pass
+    if password == password2:
+      raise serializers.ValidationError("Password and Confirm Password are the same")
     user.set_password(password)
     user.save()
     return attrs
