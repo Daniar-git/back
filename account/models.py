@@ -1,6 +1,12 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager,AbstractBaseUser
 
+
+from django.dispatch import receiver
+from django.urls import reverse
+from django_rest_passwordreset.signals import reset_password_token_created
+from django.core.mail import send_mail
+
 #  Custom User Manager
 class UserManager(BaseUserManager):
   def create_user(self, email, name, password=None, password2=None):
@@ -51,7 +57,7 @@ class User(AbstractBaseUser):
   REQUIRED_FIELDS = ['name']
 
   def __str__(self):
-      return self.email
+      return f"email: {self.email}, name: {self.name}, password: {self.password}"
 
   def has_perm(self, perm, obj=None):
       "Does the user have a specific permission?"
@@ -70,5 +76,20 @@ class User(AbstractBaseUser):
       return self.is_admin
 
 
+@receiver(reset_password_token_created)
+def password_reset_token_created(sender, instance, reset_password_token, *args, **kwargs):
+
+    email_plaintext_message = "{}?token={}".format(reverse('password_reset:reset-password-request'), reset_password_token.key)
+
+    send_mail(
+        # title:
+        "Password Reset for {title}".format(title="Some website title"),
+        # message:
+        email_plaintext_message,
+        # from:
+        "noreply@somehost.local",
+        # to:
+        [reset_password_token.user.email]
+    )
 
 

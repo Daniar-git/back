@@ -38,22 +38,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     fields = ['id', 'email', 'name']
 
 class UserChangePasswordSerializer(serializers.Serializer):
-  password = serializers.CharField(max_length=255, style={'input_type':'password'}, write_only=True)
-  password2 = serializers.CharField(max_length=255, style={'input_type':'password'}, write_only=True)
-  class Meta:
-    fields = ['password', 'password2']
+  old_password = serializers.CharField(max_length=255, style={'input_type':'password'},required=True)
+  new_password = serializers.CharField(max_length=255, style={'input_type':'password'}, required=True)
+  # class Meta:
+  #   fields = ['old_password', 'new_password']
 
-  def validate(self, attrs):
-    password = attrs.get('password')
-    password2 = attrs.get('password2')
-    user = self.context.get('user')
-    # if use :
-    #   pass
-    if password == password2:
-      raise serializers.ValidationError("Password and Confirm Password are the same")
-    user.set_password(password)
-    user.save()
-    return attrs
 
 class SendPasswordResetEmailSerializer(serializers.Serializer):
   email = serializers.EmailField(max_length=255)
@@ -68,7 +57,7 @@ class SendPasswordResetEmailSerializer(serializers.Serializer):
       print('Encoded UID', uid)
       token = PasswordResetTokenGenerator().make_token(user)
       print('Password Reset Token', token)
-      link = 'http://localhost:3000/api/user/reset/'+uid+'/'+token
+      link = 'http://127.0.0.1:8000//api/user/reset-password/'+uid+'/'+token
       print('Password Reset Link', link)
       # Send EMail
       body = 'Click Following Link to Reset Your Password '+link
@@ -106,4 +95,3 @@ class UserPasswordResetSerializer(serializers.Serializer):
     except DjangoUnicodeDecodeError as identifier:
       PasswordResetTokenGenerator().check_token(user, token)
       raise serializers.ValidationError('Token is not Valid or Expired')
-  
